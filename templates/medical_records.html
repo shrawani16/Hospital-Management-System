@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Medical Records</h2>
+            <div class="mb-3">
+                <a href="{{ url_for('add_medical_record', patient_id=records[0].patient_id if records else 0) }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Record
+                </a>
+            </div>
+            
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Diagnosis</th>
+                                <th>Symptoms</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td>{{ record.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ record.diagnosis }}</td>
+                                <td>{{ record.symptoms }}</td>
+                                <td>{{ record.notes }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="#" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#recordModal{{ record.id }}">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Modal for detailed view -->
+                            <div class="modal fade" id="recordModal{{ record.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Medical Record Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Patient:</strong> {{ record.patient_name }}</p>
+                                                    <p><strong>Date:</strong> {{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                                    <p><strong>Diagnosis:</strong> {{ record.diagnosis }}</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Symptoms:</strong> {{ record.symptoms }}</p>
+                                                    <p><strong>Notes:</strong> {{ record.notes }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    No medical records found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

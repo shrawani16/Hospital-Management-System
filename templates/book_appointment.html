@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Book Appointment - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Book an Appointment</h2>
+
+    <!-- Doctor Selection Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Select a Doctor</h4>
+        </div>
+        <div class="card-body">
+            {% if doctors %}
+            <div class="row">
+                {% for doctor in doctors %}
+                <div class="col-md-4 mb-3">
+                    <div class="card {% if selected_doctor_id == doctor.id %}border-primary{% endif %}">
+                        <div class="card-body">
+                            <h5 class="card-title">Dr. {{ doctor.full_name }}</h5>
+                            <p class="card-text">{{ doctor.email }}</p>
+                            <a href="{{ url_for('book_appointment', doctor_id=doctor.id) }}" 
+                               class="btn {% if selected_doctor_id == doctor.id %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Select Doctor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No doctors are currently available for appointments.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Available Slots Section -->
+    {% if selected_doctor_id %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Available Time Slots</h4>
+        </div>
+        <div class="card-body">
+            {% if available_slots %}
+            <form method="POST" action="{{ url_for('book_appointment') }}">
+                <input type="hidden" name="doctor" value="{{ selected_doctor_id }}">
+                
+                <div class="mb-3">
+                    <label class="form-label">Select an Available Slot</label>
+                    {% set current_date = '' %}
+                    {% for slot in available_slots %}
+                        {% if slot.date != current_date %}
+                            {% if not loop.first %}</div>{% endif %}
+                            <h5 class="mt-4 mb-3">{{ slot.date | datetime('%A, %B %d, %Y') }}</h5>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% set current_date = slot.date %}
+                        {% endif %}
+                        <div class="form-check time-slot">
+                            <input type="radio" name="appointment_slot" 
+                                   id="slot_{{ loop.index }}"
+                                   value="{{ slot.date }},{{ slot.start_time }}"
+                                   class="form-check-input" required>
+                            <label class="form-check-label px-3 py-2 border rounded {% if selected_doctor_id %}border-primary{% endif %}" 
+                                   for="slot_{{ loop.index }}">
+                                {{ slot.start_time }} - {{ slot.end_time }}
+                            </label>
+                        </div>
+                        {% if loop.last %}</div>{% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="reason" class="form-label">Reason for Visit</label>
+                    <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Book Appointment</button>
+            </form>
+            {% else %}
+            <div class="alert alert-info">
+                No available time slots for this doctor. Please select another doctor or try again later.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Existing Appointments Section -->
+    <div class="card">
+        <div class="card-header">
+            <h4>My Appointments</h4>
+        </div>
+        <div class="card-body">
+            {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>Dr. {{ appointment.doctor_name }}</td>
+                            <td>{{ appointment.formatted_date }}</td>
+                            <td>{{ appointment.formatted_start_time }} - {{ appointment.formatted_end_time }}</td>
+                            <td>
+                                <span class="badge {% if appointment.status == 'scheduled' %}bg-primary{% elif appointment.status == 'completed' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ appointment.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if appointment.status == 'scheduled' %}
+                                <form method="POST" action="{{ url_for('cancel_appointment', appointment_id=appointment.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No appointments scheduled.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.time-slot .form-check-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.time-slot .form-check-input:checked + .form-check-label {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd !important;
+}
+.time-slot .form-check-input {
+    display: none;
+}
+</style>
+{% endblock %} 
